@@ -1,0 +1,7 @@
+{
+  "name": "PuckOverlay - Hockey Video Scoreboard Overlay",
+  "description": "Adjustable scoreboard overlay for hockey video editing with customizable teams, periods, chroma key background, and keyboard score controls.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
