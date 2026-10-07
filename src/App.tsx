@@ -59,6 +59,19 @@ export default function App() {
     soundEnabled: true,
     goalAnimation: true,
     showSafeMargin: false,
+    scoreboardBgColor: '#000000',
+    scoreboardOpacity: 90,
+    scoreboardBlur: 10,
+    scoreboardBorderOpacity: 25,
+    scoreboardBorderColor: '#ffffff',
+    scoreBoxBgColor: '#18181b',
+    scoreBoxOpacity: 90,
+    scoreBoxTextColor: '#ffffff',
+    scoreBoxMatchTeamColor: false,
+    periodBoxBgColor: '#09090b',
+    periodBoxOpacity: 90,
+    periodTextColor: '#fbbf24',
+    teamBoxStyle: 'neutral',
   });
 
   // Full-screen state
@@ -413,38 +426,75 @@ export default function App() {
               showExitHint ? 'opacity-95' : 'opacity-0 pointer-events-none'
             }`}
           >
-            {/* Quick in-fullscreen size adjuster */}
-            <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-neutral-900/90 hover:bg-neutral-900 text-white text-xs font-semibold border border-white/20 shadow-2xl backdrop-blur-md">
-              <span className="text-[10px] uppercase font-bold text-neutral-400">Size:</span>
-              <button
-                type="button"
-                onClick={() =>
-                  setSettings((prev) => ({
-                    ...prev,
-                    scale: Math.max(0.25, Math.round((prev.scale - 0.05) * 100) / 100),
-                  }))
-                }
-                title="Decrease size (<)"
-                className="w-5 h-5 flex items-center justify-center rounded bg-white/10 hover:bg-white/25 active:scale-95 text-white"
-              >
-                -
-              </button>
-              <span className="font-digital text-cyan-300 font-bold px-1 min-w-[34px] text-center">
-                {Math.round(settings.scale * 100)}%
-              </span>
-              <button
-                type="button"
-                onClick={() =>
-                  setSettings((prev) => ({
-                    ...prev,
-                    scale: Math.min(1.5, Math.round((prev.scale + 0.05) * 100) / 100),
-                  }))
-                }
-                title="Increase size (>)"
-                className="w-5 h-5 flex items-center justify-center rounded bg-white/10 hover:bg-white/25 active:scale-95 text-white"
-              >
-                +
-              </button>
+            {/* Quick in-fullscreen size & opacity adjuster */}
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-neutral-900/90 hover:bg-neutral-900 text-white text-xs font-semibold border border-white/20 shadow-2xl backdrop-blur-md">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] uppercase font-bold text-neutral-400">Size:</span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      scale: Math.max(0.25, Math.round((prev.scale - 0.05) * 100) / 100),
+                    }))
+                  }
+                  title="Decrease size (<)"
+                  className="w-5 h-5 flex items-center justify-center rounded bg-white/10 hover:bg-white/25 active:scale-95 text-white"
+                >
+                  -
+                </button>
+                <span className="font-digital text-cyan-300 font-bold px-1 min-w-[34px] text-center">
+                  {Math.round(settings.scale * 100)}%
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      scale: Math.min(1.5, Math.round((prev.scale + 0.05) * 100) / 100),
+                    }))
+                  }
+                  title="Increase size (>)"
+                  className="w-5 h-5 flex items-center justify-center rounded bg-white/10 hover:bg-white/25 active:scale-95 text-white"
+                >
+                  +
+                </button>
+              </div>
+
+              <div className="h-3 w-px bg-white/20" />
+
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] uppercase font-bold text-neutral-400">Opacity:</span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      scoreboardOpacity: Math.max(0, (prev.scoreboardOpacity ?? 88) - 10),
+                    }))
+                  }
+                  title="Decrease scoreboard opacity"
+                  className="w-5 h-5 flex items-center justify-center rounded bg-white/10 hover:bg-white/25 active:scale-95 text-white"
+                >
+                  -
+                </button>
+                <span className="font-digital text-amber-300 font-bold px-1 min-w-[32px] text-center">
+                  {settings.scoreboardOpacity ?? 88}%
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      scoreboardOpacity: Math.min(100, (prev.scoreboardOpacity ?? 88) + 10),
+                    }))
+                  }
+                  title="Increase scoreboard opacity"
+                  className="w-5 h-5 flex items-center justify-center rounded bg-white/10 hover:bg-white/25 active:scale-95 text-white"
+                >
+                  +
+                </button>
+              </div>
             </div>
 
             <button
@@ -591,6 +641,40 @@ export default function App() {
                         }))
                       }
                       title="Increase scale (>)"
+                      className="w-4 h-4 flex items-center justify-center rounded bg-neutral-800 hover:bg-neutral-700 text-white font-bold"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  {/* Quick Scoreboard Opacity pill on canvas bar */}
+                  <div className="hidden sm:flex items-center gap-1 bg-neutral-900 px-2 py-0.5 rounded-lg border border-neutral-800 text-[11px]">
+                    <span className="text-neutral-400 font-bold uppercase text-[9px]">Opacity:</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setSettings((prev) => ({
+                          ...prev,
+                          scoreboardOpacity: Math.max(0, (prev.scoreboardOpacity ?? 88) - 10),
+                        }))
+                      }
+                      title="Decrease scoreboard opacity"
+                      className="w-4 h-4 flex items-center justify-center rounded bg-neutral-800 hover:bg-neutral-700 text-white font-bold"
+                    >
+                      -
+                    </button>
+                    <span className="font-digital text-amber-300 font-bold px-1 min-w-[28px] text-center">
+                      {settings.scoreboardOpacity ?? 88}%
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setSettings((prev) => ({
+                          ...prev,
+                          scoreboardOpacity: Math.min(100, (prev.scoreboardOpacity ?? 88) + 10),
+                        }))
+                      }
+                      title="Increase scoreboard opacity"
                       className="w-4 h-4 flex items-center justify-center rounded bg-neutral-800 hover:bg-neutral-700 text-white font-bold"
                     >
                       +

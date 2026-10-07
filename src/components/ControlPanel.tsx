@@ -162,8 +162,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
               : 'text-neutral-400 hover:text-white hover:bg-neutral-900'
           }`}
         >
-          <Settings2 className="w-3.5 h-3.5 text-amber-400" />
-          <span>Position & Size</span>
+          <Palette className="w-3.5 h-3.5 text-amber-400" />
+          <span>Scoreboard Style & Size</span>
         </button>
 
         <button
@@ -608,11 +608,364 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           <div className="space-y-6">
             <div>
               <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-                Scoreboard Geometry & Options
+                Scoreboard Style, Background & Geometry
               </h3>
               <p className="text-xs text-neutral-400 mt-0.5">
-                Scale, margins, audio feedback, and optional broadcast widgets.
+                Control the scoreboard's own background color, glass transparency, scale, and margins.
               </p>
+            </div>
+
+            {/* SCOREBOARD BACKGROUND & TRANSPARENCY CARD */}
+            <div className="p-4 rounded-xl bg-neutral-950/70 border border-neutral-800 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <Palette className="w-3.5 h-3.5 text-amber-400" />
+                    Scoreboard Background Color & Transparency
+                  </h4>
+                  <p className="text-[11px] text-neutral-400 mt-0.5">
+                    Customize the background color, opacity, and glassmorphism of the scoreboard bug.
+                  </p>
+                </div>
+                <div className="font-digital text-xs font-bold text-amber-400 px-2 py-0.5 bg-neutral-900 rounded border border-neutral-800">
+                  {settings.scoreboardOpacity ?? 88}% Opacity
+                </div>
+              </div>
+
+              {/* Scoreboard Opacity Slider */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-neutral-300">Scoreboard Opacity / Transparency</span>
+                  <span className="font-digital text-neutral-400">{settings.scoreboardOpacity ?? 88}%</span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={settings.scoreboardOpacity ?? 88}
+                  onChange={(e) => onUpdateSettings({ scoreboardOpacity: parseInt(e.target.value) })}
+                  className="w-full accent-amber-400 h-2 bg-neutral-800 rounded-lg cursor-pointer"
+                />
+                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  {[
+                    { label: 'Solid (100%)', val: 100 },
+                    { label: 'Glass (85%)', val: 85 },
+                    { label: 'Translucent (60%)', val: 60 },
+                    { label: 'Ghost (35%)', val: 35 },
+                    { label: 'Clear / Float (0%)', val: 0 },
+                  ].map((preset) => (
+                    <button
+                      key={preset.val}
+                      type="button"
+                      onClick={() => onUpdateSettings({ scoreboardOpacity: preset.val })}
+                      className={`px-2.5 py-1 rounded text-xs font-semibold transition-all ${
+                        (settings.scoreboardOpacity ?? 88) === preset.val
+                          ? 'bg-amber-500 text-neutral-950 font-black shadow-xs'
+                          : 'bg-neutral-900 text-neutral-400 hover:text-white hover:bg-neutral-800 border border-neutral-800'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Scoreboard Body Color */}
+              <div className="space-y-2 pt-2 border-t border-neutral-800">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-neutral-300">Scoreboard Background Color</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={settings.scoreboardBgColor || '#0a0a0c'}
+                      onChange={(e) => onUpdateSettings({ scoreboardBgColor: e.target.value })}
+                      className="w-7 h-6 rounded cursor-pointer bg-neutral-900 border border-neutral-700 p-0.5"
+                    />
+                    <input
+                      type="text"
+                      value={settings.scoreboardBgColor || '#0a0a0c'}
+                      onChange={(e) => onUpdateSettings({ scoreboardBgColor: e.target.value })}
+                      className="w-20 px-2 py-0.5 text-xs font-digital bg-neutral-900 border border-neutral-700 rounded text-white"
+                    />
+                  </div>
+                </div>
+
+                {/* Color swatches */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {[
+                    { label: 'Pitch Black', hex: '#000000' },
+                    { label: 'Dark Charcoal', hex: '#121214' },
+                    { label: 'Midnight Navy', hex: '#0a0f1d' },
+                    { label: 'Arena Slate', hex: '#1e293b' },
+                    { label: 'Hockey Crimson', hex: '#2b0b0e' },
+                    { label: 'Ice White', hex: '#ffffff' },
+                  ].map((swatch) => (
+                    <button
+                      key={swatch.hex}
+                      type="button"
+                      onClick={() => onUpdateSettings({ scoreboardBgColor: swatch.hex })}
+                      className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-medium border transition-all ${
+                        (settings.scoreboardBgColor || '#0a0a0c').toLowerCase() === swatch.hex.toLowerCase()
+                          ? 'border-amber-400 bg-neutral-850 text-white ring-1 ring-amber-400'
+                          : 'border-neutral-800 bg-neutral-900 text-neutral-400 hover:text-white'
+                      }`}
+                    >
+                      <span
+                        className="w-2.5 h-2.5 rounded-full border border-neutral-700"
+                        style={{ backgroundColor: swatch.hex }}
+                      />
+                      <span>{swatch.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Glassmorphism Blur & Border Sliders */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-neutral-800">
+                {/* Backdrop Blur */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-neutral-300">Glass Backdrop Blur</span>
+                    <span className="font-digital text-neutral-400">{settings.scoreboardBlur ?? 12}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={20}
+                    value={settings.scoreboardBlur ?? 12}
+                    onChange={(e) => onUpdateSettings({ scoreboardBlur: parseInt(e.target.value) })}
+                    className="w-full accent-amber-400 h-1.5 bg-neutral-800 rounded-lg cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] text-neutral-500 font-digital">
+                    <span>0px (Sharp)</span>
+                    <span>10px (Glass)</span>
+                    <span>20px (Max Blur)</span>
+                  </div>
+                </div>
+
+                {/* Border Outline Opacity */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-neutral-300">Border Outline Opacity</span>
+                    <span className="font-digital text-neutral-400">{settings.scoreboardBorderOpacity ?? 25}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={settings.scoreboardBorderOpacity ?? 25}
+                    onChange={(e) => onUpdateSettings({ scoreboardBorderOpacity: parseInt(e.target.value) })}
+                    className="w-full accent-amber-400 h-1.5 bg-neutral-800 rounded-lg cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] text-neutral-500 font-digital">
+                    <span>0% (Borderless)</span>
+                    <span>25% (Subtle)</span>
+                    <span>100% (Solid)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* COLORS INSIDE SCOREBOARD BOXES CARD */}
+            <div className="p-4 rounded-xl bg-neutral-950/70 border border-neutral-800 space-y-5">
+              <div>
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <Palette className="w-3.5 h-3.5 text-cyan-400" />
+                  Colors Inside Scoreboard Boxes
+                </h4>
+                <p className="text-[11px] text-neutral-400 mt-0.5">
+                  Customize the individual boxes inside: Score digits, Period section, and Team name panels.
+                </p>
+              </div>
+
+              {/* 1. SCORE BOXES (NUMBERS) */}
+              <div className="p-3 rounded-lg bg-neutral-900/80 border border-neutral-800/80 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-neutral-200">
+                    Score Number Boxes (Visitor & Home Scores)
+                  </span>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <span className="text-[11px] text-neutral-400">Match Each Team Color</span>
+                    <input
+                      type="checkbox"
+                      checked={settings.scoreBoxMatchTeamColor ?? false}
+                      onChange={(e) => onUpdateSettings({ scoreBoxMatchTeamColor: e.target.checked })}
+                      className="rounded accent-cyan-400 cursor-pointer"
+                    />
+                  </label>
+                </div>
+
+                {!settings.scoreBoxMatchTeamColor ? (
+                  <div className="flex items-center justify-between text-xs pt-1">
+                    <span className="text-neutral-400">Score Box Background Color</span>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={settings.scoreBoxBgColor || '#18181b'}
+                        onChange={(e) => onUpdateSettings({ scoreBoxBgColor: e.target.value })}
+                        className="w-7 h-6 rounded cursor-pointer bg-neutral-900 border border-neutral-700 p-0.5"
+                      />
+                      <input
+                        type="text"
+                        value={settings.scoreBoxBgColor || '#18181b'}
+                        onChange={(e) => onUpdateSettings({ scoreBoxBgColor: e.target.value })}
+                        className="w-20 px-2 py-0.5 text-xs font-digital bg-neutral-900 border border-neutral-700 rounded text-white"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-cyan-400 bg-cyan-950/40 p-2 rounded border border-cyan-800/40">
+                    Visitor score box uses Visitor color ({visitorTeam.primaryColor}), Home score box uses Home color ({homeTeam.primaryColor}).
+                  </p>
+                )}
+
+                {/* Score Box Opacity & Number Color */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-neutral-400">Score Box Opacity</span>
+                      <span className="font-digital text-neutral-300">{settings.scoreBoxOpacity ?? 90}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      value={settings.scoreBoxOpacity ?? 90}
+                      onChange={(e) => onUpdateSettings({ scoreBoxOpacity: parseInt(e.target.value) })}
+                      className="w-full accent-cyan-400 h-1.5 bg-neutral-800 rounded-lg cursor-pointer"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-neutral-400">Score Digits Text Color</span>
+                    <div className="flex items-center gap-1.5">
+                      {['#ffffff', '#fbbf24', '#22d3ee', '#ef4444', '#10b981'].map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => onUpdateSettings({ scoreBoxTextColor: c })}
+                          style={{ backgroundColor: c }}
+                          className={`w-5 h-5 rounded-md border ${
+                            (settings.scoreBoxTextColor || '#ffffff') === c
+                              ? 'border-white ring-2 ring-cyan-400'
+                              : 'border-neutral-700'
+                          }`}
+                          title={c}
+                        />
+                      ))}
+                      <input
+                        type="color"
+                        value={settings.scoreBoxTextColor || '#ffffff'}
+                        onChange={(e) => onUpdateSettings({ scoreBoxTextColor: e.target.value })}
+                        className="w-5 h-5 rounded cursor-pointer bg-transparent border-0 p-0"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. PERIOD & CLOCK BOX */}
+              <div className="p-3 rounded-lg bg-neutral-900/80 border border-neutral-800/80 space-y-3">
+                <span className="text-xs font-bold text-neutral-200 block">
+                  Period & Clock Section Box
+                </span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-neutral-400">Period Box Background</span>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={settings.periodBoxBgColor || '#09090b'}
+                        onChange={(e) => onUpdateSettings({ periodBoxBgColor: e.target.value })}
+                        className="w-7 h-6 rounded cursor-pointer bg-neutral-900 border border-neutral-700 p-0.5"
+                      />
+                      <input
+                        type="text"
+                        value={settings.periodBoxBgColor || '#09090b'}
+                        onChange={(e) => onUpdateSettings({ periodBoxBgColor: e.target.value })}
+                        className="w-20 px-2 py-0.5 text-xs font-digital bg-neutral-900 border border-neutral-700 rounded text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-neutral-400">Period Text Color</span>
+                    <div className="flex items-center gap-1.5">
+                      {['#fbbf24', '#ffffff', '#38bdf8', '#f97316', '#a855f7'].map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => onUpdateSettings({ periodTextColor: c })}
+                          style={{ backgroundColor: c }}
+                          className={`w-5 h-5 rounded-md border ${
+                            (settings.periodTextColor || '#fbbf24') === c
+                              ? 'border-white ring-2 ring-amber-400'
+                              : 'border-neutral-700'
+                          }`}
+                          title={c}
+                        />
+                      ))}
+                      <input
+                        type="color"
+                        value={settings.periodTextColor || '#fbbf24'}
+                        onChange={(e) => onUpdateSettings({ periodTextColor: e.target.value })}
+                        className="w-5 h-5 rounded cursor-pointer bg-transparent border-0 p-0"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-1 pt-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-neutral-400">Period Box Opacity</span>
+                    <span className="font-digital text-neutral-300">{settings.periodBoxOpacity ?? 90}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={settings.periodBoxOpacity ?? 90}
+                    onChange={(e) => onUpdateSettings({ periodBoxOpacity: parseInt(e.target.value) })}
+                    className="w-full accent-amber-400 h-1.5 bg-neutral-800 rounded-lg cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              {/* 3. TEAM NAME PANELS STYLE */}
+              <div className="p-3 rounded-lg bg-neutral-900/80 border border-neutral-800/80 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-neutral-200">
+                    Team Name Panels Background Style
+                  </span>
+                  <span className="text-[11px] text-neutral-400">
+                    Background behind VISITOR & HOME team names
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 pt-1">
+                  {[
+                    { id: 'neutral', label: 'Neutral Glass', desc: 'Sleek dark glass' },
+                    { id: 'team-tint', label: 'Team Tint (25%)', desc: 'Subtle team glow' },
+                    { id: 'team-solid', label: 'Solid Team Banner', desc: 'Bold TV banner' },
+                  ].map((style) => (
+                    <button
+                      key={style.id}
+                      type="button"
+                      onClick={() => onUpdateSettings({ teamBoxStyle: style.id as any })}
+                      className={`p-2.5 rounded-lg border text-left transition-all ${
+                        (settings.teamBoxStyle || 'neutral') === style.id
+                          ? 'border-cyan-400 bg-neutral-800 text-white ring-1 ring-cyan-400'
+                          : 'border-neutral-800 bg-neutral-950/60 text-neutral-400 hover:text-white hover:bg-neutral-850'
+                      }`}
+                    >
+                      <span className="text-xs font-bold block">{style.label}</span>
+                      <span className="text-[10px] text-neutral-500 block mt-0.5">{style.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Sliders */}

@@ -80,22 +80,94 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
 
   const isCompact = settings.density !== 'standard';
 
+  const hexToRgba = (hex: string, alphaPercent: number) => {
+    const cleanHex = hex.replace('#', '');
+    const r = parseInt(cleanHex.substring(0, 2) || '00', 16);
+    const g = parseInt(cleanHex.substring(2, 4) || '00', 16);
+    const b = parseInt(cleanHex.substring(4, 6) || '00', 16);
+    const alpha = Math.max(0, Math.min(1, alphaPercent / 100));
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
+
+  const sbBgColor = settings.scoreboardBgColor || '#0a0a0c';
+  const sbOpacity = settings.scoreboardOpacity ?? 88;
+  const sbBlur = settings.scoreboardBlur ?? 12;
+  const sbBorderOpacity = settings.scoreboardBorderOpacity ?? 25;
+  const sbBorderColor = settings.scoreboardBorderColor || '#ffffff';
+
+  const shellBg = hexToRgba(sbBgColor, sbOpacity);
+  const shellBorder = hexToRgba(sbBorderColor, sbBorderOpacity);
+  const dividerBorder = hexToRgba(sbBorderColor, sbBorderOpacity * 0.75);
+
+  // Inner box computations:
+  const teamBoxStyle = settings.teamBoxStyle || 'neutral';
+  
+  const getTeamBoxBg = (teamColor: string) => {
+    if (teamBoxStyle === 'team-tint') {
+      return hexToRgba(teamColor, 25);
+    }
+    if (teamBoxStyle === 'team-solid') {
+      return hexToRgba(teamColor, 75);
+    }
+    return 'transparent';
+  };
+
+  const getScoreBoxBg = (teamColor: string) => {
+    if (settings.scoreBoxMatchTeamColor) {
+      return hexToRgba(teamColor, settings.scoreBoxOpacity ?? 90);
+    }
+    const color = settings.scoreBoxBgColor || '#18181b';
+    const opacity = settings.scoreBoxOpacity ?? 90;
+    return hexToRgba(color, opacity);
+  };
+
+  const periodBoxBg = hexToRgba(
+    settings.periodBoxBgColor || '#09090b',
+    settings.periodBoxOpacity ?? 90
+  );
+  const periodTextColor = settings.periodTextColor || '#fbbf24';
+  const scoreTextColor = settings.scoreBoxTextColor || '#ffffff';
+
   return (
     <div
       className="inline-flex select-none flex-col transition-transform duration-150 origin-top-left"
       style={{
         transform: `scale(${settings.scale})`,
-        filter: 'drop-shadow(0 6px 18px rgba(0, 0, 0, 0.75))',
+        filter: sbOpacity > 15 ? 'drop-shadow(0 8px 24px rgba(0, 0, 0, 0.75))' : 'none',
       }}
     >
-      {/* Outer Shell - Sleek Broadcast Glass / Matte Bevel */}
-      <div className="relative flex items-stretch rounded-lg overflow-hidden border border-white/20 bg-gradient-to-b from-neutral-900 via-neutral-950 to-black text-white shadow-2xl">
+      {/* Outer Shell - Custom Background Color & Transparency */}
+      <div
+        className="relative flex items-stretch rounded-lg overflow-hidden text-white transition-colors duration-150 shadow-2xl"
+        style={{
+          backgroundColor: shellBg,
+          borderColor: shellBorder,
+          borderWidth: sbBorderOpacity > 0 ? '1px' : '0px',
+          borderStyle: 'solid',
+          backdropFilter: sbBlur > 0 ? `blur(${sbBlur}px)` : 'none',
+          WebkitBackdropFilter: sbBlur > 0 ? `blur(${sbBlur}px)` : 'none',
+        }}
+      >
         
-        {/* Subtle Top Metallic Highlight Strip */}
-        <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none" />
+        {/* Subtle Top Metallic Highlight Strip (fades with opacity) */}
+        {sbBorderOpacity > 10 && (
+          <div
+            className="absolute inset-x-0 top-0 h-[1.5px] pointer-events-none"
+            style={{
+              background: `linear-gradient(to right, transparent, ${hexToRgba(sbBorderColor, sbBorderOpacity * 1.5)}, transparent)`,
+            }}
+          />
+        )}
 
         {/* ================= VISITOR TEAM (TOP / LEFT) ================= */}
-        <div className="relative flex items-stretch border-r border-white/10 group">
+        <div
+          className="relative flex items-stretch group"
+          style={{
+            borderRightWidth: '1px',
+            borderRightStyle: 'solid',
+            borderRightColor: dividerBorder,
+          }}
+        >
           {/* Visitor Team Color Accent Bar */}
           <div
             className={`${isCompact ? 'w-2' : 'w-2.5'} transition-colors duration-200`}
@@ -103,7 +175,12 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
           />
 
           {/* Visitor Team Details */}
-          <div className={`flex flex-col justify-center ${isCompact ? 'px-3 py-1.5 min-w-[95px] max-w-[135px]' : 'px-4 py-2 min-w-[130px] max-w-[170px]'}`}>
+          <div
+            className={`flex flex-col justify-center transition-colors duration-200 ${isCompact ? 'px-3 py-1.5 min-w-[95px] max-w-[135px]' : 'px-4 py-2 min-w-[130px] max-w-[170px]'}`}
+            style={{
+              backgroundColor: getTeamBoxBg(visitorTeam.primaryColor),
+            }}
+          >
             <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-400 leading-none mb-0.5">
               VISITOR
             </span>
@@ -141,13 +218,20 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
 
           {/* Visitor Score Box */}
           <div
-            className={`relative flex items-center justify-center border-l border-white/10 font-digital font-extrabold tracking-tighter ${
+            className={`relative flex items-center justify-center font-digital font-extrabold tracking-tighter transition-colors duration-150 ${
               isCompact ? 'px-3.5 py-1 min-w-[48px] text-2xl' : 'px-5 py-1 min-w-[64px] text-4xl'
-            } bg-neutral-900/90 ${
+            } ${
               goalEffectTeam === 'visitor'
-                ? 'text-yellow-300 bg-yellow-950/60 ring-2 ring-yellow-400 animate-pulse'
-                : 'text-white'
+                ? 'text-yellow-300 bg-yellow-950/80 ring-2 ring-yellow-400 animate-pulse'
+                : ''
             }`}
+            style={{
+              backgroundColor: goalEffectTeam === 'visitor' ? undefined : getScoreBoxBg(visitorTeam.primaryColor),
+              color: goalEffectTeam === 'visitor' ? undefined : scoreTextColor,
+              borderLeftWidth: '1px',
+              borderLeftStyle: 'solid',
+              borderLeftColor: dividerBorder,
+            }}
           >
             <span>{visitorTeam.score}</span>
 
@@ -176,7 +260,14 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
         </div>
 
         {/* ================= HOME TEAM (BOTTOM / RIGHT) ================= */}
-        <div className="relative flex items-stretch border-r border-white/10 group">
+        <div
+          className="relative flex items-stretch group"
+          style={{
+            borderRightWidth: '1px',
+            borderRightStyle: 'solid',
+            borderRightColor: dividerBorder,
+          }}
+        >
           {/* Home Team Color Accent Bar */}
           <div
             className={`${isCompact ? 'w-2' : 'w-2.5'} transition-colors duration-200`}
@@ -184,7 +275,12 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
           />
 
           {/* Home Team Details */}
-          <div className={`flex flex-col justify-center ${isCompact ? 'px-3 py-1.5 min-w-[95px] max-w-[135px]' : 'px-4 py-2 min-w-[130px] max-w-[170px]'}`}>
+          <div
+            className={`flex flex-col justify-center transition-colors duration-200 ${isCompact ? 'px-3 py-1.5 min-w-[95px] max-w-[135px]' : 'px-4 py-2 min-w-[130px] max-w-[170px]'}`}
+            style={{
+              backgroundColor: getTeamBoxBg(homeTeam.primaryColor),
+            }}
+          >
             <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-400 leading-none mb-0.5">
               HOME
             </span>
@@ -222,13 +318,20 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
 
           {/* Home Score Box */}
           <div
-            className={`relative flex items-center justify-center border-l border-white/10 font-digital font-extrabold tracking-tighter ${
+            className={`relative flex items-center justify-center font-digital font-extrabold tracking-tighter transition-colors duration-150 ${
               isCompact ? 'px-3.5 py-1 min-w-[48px] text-2xl' : 'px-5 py-1 min-w-[64px] text-4xl'
-            } bg-neutral-900/90 ${
+            } ${
               goalEffectTeam === 'home'
-                ? 'text-yellow-300 bg-yellow-950/60 ring-2 ring-yellow-400 animate-pulse'
-                : 'text-white'
+                ? 'text-yellow-300 bg-yellow-950/80 ring-2 ring-yellow-400 animate-pulse'
+                : ''
             }`}
+            style={{
+              backgroundColor: goalEffectTeam === 'home' ? undefined : getScoreBoxBg(homeTeam.primaryColor),
+              color: goalEffectTeam === 'home' ? undefined : scoreTextColor,
+              borderLeftWidth: '1px',
+              borderLeftStyle: 'solid',
+              borderLeftColor: dividerBorder,
+            }}
           >
             <span>{homeTeam.score}</span>
 
@@ -257,7 +360,12 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
         </div>
 
         {/* ================= PERIOD & CLOCK SECTION ================= */}
-        <div className={`relative flex flex-col justify-center bg-gradient-to-b from-neutral-900 to-black text-center border-l border-white/10 group/period ${isCompact ? 'px-3 py-1.5 min-w-[76px]' : 'px-4 py-2 min-w-[100px]'}`}>
+        <div
+          className={`relative flex flex-col justify-center text-center transition-colors duration-150 group/period ${isCompact ? 'px-3 py-1.5 min-w-[76px]' : 'px-4 py-2 min-w-[100px]'}`}
+          style={{
+            backgroundColor: periodBoxBg,
+          }}
+        >
           <div className="flex items-center justify-center gap-1">
             {/* Period Minus Button */}
             {isInteractive && (
@@ -277,7 +385,13 @@ export const Scoreboard: React.FC<ScoreboardProps> = ({
               <span className="text-[8px] uppercase tracking-wider font-semibold text-neutral-400 leading-none">
                 PERIOD
               </span>
-              <span className={`font-sports font-black tracking-wider text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)] ${isCompact ? 'text-xl' : 'text-2xl'}`}>
+              <span
+                className={`font-sports font-black tracking-wider transition-colors ${isCompact ? 'text-xl' : 'text-2xl'}`}
+                style={{
+                  color: periodTextColor,
+                  textShadow: `0 0 10px ${hexToRgba(periodTextColor, 40)}`,
+                }}
+              >
                 {getPeriodText(period)}
               </span>
             </div>
